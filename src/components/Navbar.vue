@@ -7,6 +7,7 @@ const isMenuOpen = ref(false)
 const navItems = [
   { id: 'attractions', label: '景点' },
   { id: 'features', label: '特色' },
+  { id: 'counties', label: '县区' },
   { id: 'gallery', label: '图集' },
   { id: 'contact', label: '联系' }
 ]

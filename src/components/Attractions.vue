@@ -17,6 +17,24 @@ const emit = defineEmits<{
   (e: 'select-spot', spot: Spot): void
 }>()
 
+const handleTilt = (e: MouseEvent) => {
+  const card = e.currentTarget as HTMLElement
+  const rect = card.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  const centerX = rect.width / 2
+  const centerY = rect.height / 2
+  const rotateX = (y - centerY) / 30
+  const rotateY = (centerX - x) / 30
+  
+  card.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${-rotateY}deg) translateZ(10px)`
+}
+
+const resetTilt = (e: MouseEvent) => {
+  const card = e.currentTarget as HTMLElement
+  card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)'
+}
+
 const spots: Spot[] = [
   {
     id: 1,
@@ -132,9 +150,12 @@ const filtered = computed(() => {
           :key="spot.id"
           :class="['card', { 'card-large': index === 0 }]"
           @click="emit('select-spot', spot)"
+          @mousemove="handleTilt"
+          @mouseleave="resetTilt"
         >
           <div class="card-image">
             <img :src="spot.image" :alt="spot.name" loading="lazy" />
+            <div class="card-shine"></div>
           </div>
           <div class="card-body">
             <span class="card-location">{{ spot.location }}</span>
@@ -187,11 +208,13 @@ const filtered = computed(() => {
 .card {
   background: var(--white);
   cursor: pointer;
-  transition: all 0.4s var(--ease);
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
 .card-large {
@@ -219,7 +242,26 @@ const filtered = computed(() => {
 }
 
 .card:hover .card-image img {
-  transform: scale(1.05);
+  transform: scale(1.08);
+}
+
+.card-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.card:hover .card-shine {
+  opacity: 1;
 }
 
 .card-body {

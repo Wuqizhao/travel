@@ -2,14 +2,14 @@
 import { ref } from 'vue'
 
 const images = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=800&q=80', title: '漓江晨曦', loc: '桂林' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80', title: '阳朔山水', loc: '阳朔' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', title: '龙脊梯田', loc: '龙胜' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80', title: '瀑布飞流', loc: '崇左' },
-  { id: 5, src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', title: '银滩落日', loc: '北海' },
-  { id: 6, src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80', title: '古镇晨雾', loc: '贺州' },
-  { id: 7, src: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80', title: '山水画廊', loc: '桂林' },
-  { id: 8, src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80', title: '云海仙境', loc: '桂林' }
+  { id: 1, src: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&q=80', title: '漓江晨曦', loc: '桂林' },
+  { id: 2, src: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80', title: '阳朔山水', loc: '阳朔' },
+  { id: 3, src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80', title: '龙脊梯田', loc: '龙胜' },
+  { id: 4, src: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600&q=80', title: '瀑布飞流', loc: '崇左' },
+  { id: 5, src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80', title: '银滩落日', loc: '北海' },
+  { id: 6, src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&q=80', title: '古镇晨雾', loc: '贺州' },
+  { id: 7, src: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80', title: '山水画廊', loc: '桂林' },
+  { id: 8, src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80', title: '云海仙境', loc: '百色' },
 ]
 
 const current = ref(-1)
@@ -34,24 +34,45 @@ const prev = () => {
 </script>
 
 <template>
-  <section id="gallery" class="section" style="background: var(--black);">
+  <section id="gallery" class="gallery">
     <div class="container">
       <div class="section-header" style="color: white;">
         <p class="text-xs tracking-widest uppercase" style="color: var(--stone-500);">Gallery</p>
         <h2 class="text-4xl" style="margin-top: 1rem; color: white;">影像</h2>
       </div>
+    </div>
 
-      <div class="gallery-grid">
+    <!-- Infinite Scroll Track -->
+    <div class="marquee-wrapper">
+      <div class="marquee-track">
         <div 
-          v-for="(img, i) in images" 
-          :key="img.id"
-          :class="['gallery-item', { large: i === 0 || i === 4 }]"
-          @click="open(i)"
+          v-for="(img, i) in [...images, ...images]" 
+          :key="`${img.id}-${i}`"
+          class="marquee-item"
+          @click="open(i % images.length)"
         >
           <img :src="img.src" :alt="img.title" loading="lazy" />
-          <div class="gallery-overlay">
-            <span class="gallery-loc">{{ img.loc }}</span>
-            <span class="gallery-title">{{ img.title }}</span>
+          <div class="item-overlay">
+            <span class="item-loc">{{ img.loc }}</span>
+            <span class="item-title">{{ img.title }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reverse Track -->
+    <div class="marquee-wrapper reverse">
+      <div class="marquee-track">
+        <div 
+          v-for="(img, i) in [...images.slice(4), ...images.slice(4), ...images.slice(4)]" 
+          :key="`r-${img.id}-${i}`"
+          class="marquee-item"
+          @click="open((i + 4) % images.length)"
+        >
+          <img :src="img.src" :alt="img.title" loading="lazy" />
+          <div class="item-overlay">
+            <span class="item-loc">{{ img.loc }}</span>
+            <span class="item-title">{{ img.title }}</span>
           </div>
         </div>
       </div>
@@ -86,62 +107,86 @@ const prev = () => {
 </template>
 
 <style scoped>
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 200px;
-  gap: 0.5rem;
+.gallery {
+  background: var(--black);
+  padding: clamp(4rem, 10vw, 8rem) 0 clamp(2rem, 5vw, 4rem);
+  overflow: hidden;
 }
 
-.gallery-item {
+.marquee-wrapper {
+  overflow: hidden;
+  padding: 1rem 0;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 1rem;
+  animation: scroll-left 40s linear infinite;
+  width: max-content;
+}
+
+.marquee-wrapper.reverse .marquee-track {
+  animation: scroll-right 35s linear infinite;
+}
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.marquee-item {
+  flex-shrink: 0;
+  width: 350px;
+  height: 250px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
 }
 
-.gallery-item.large {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-
-.gallery-item img {
+.marquee-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.6s var(--ease);
 }
 
-.gallery-item:hover img {
-  transform: scale(1.08);
+.marquee-item:hover img {
+  transform: scale(1.1);
 }
 
-.gallery-overlay {
+.item-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(10, 10, 10, 0.7), transparent 50%);
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.7), transparent 60%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 1rem;
+  padding: 1.25rem;
   opacity: 0;
   transition: opacity 0.3s;
 }
 
-.gallery-item:hover .gallery-overlay {
+.marquee-item:hover .item-overlay {
   opacity: 1;
 }
 
-.gallery-loc {
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
+.item-loc {
+  font-size: 0.625rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.gallery-title {
+.item-title {
   font-family: var(--font-serif);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   color: white;
+  margin-top: 0.25rem;
 }
 
 /* Lightbox */
@@ -170,7 +215,6 @@ const prev = () => {
   width: 44px;
   height: 44px;
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.15);
   transition: all 0.3s;
 }
 
@@ -178,7 +222,6 @@ const prev = () => {
 .lb-nav:hover {
   background: white;
   color: black;
-  border-color: white;
 }
 
 .lb-close {
@@ -210,20 +253,10 @@ const prev = () => {
   color: rgba(255, 255, 255, 0.5);
 }
 
-@media (max-width: 1024px) {
-  .gallery-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 640px) {
-  .gallery-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .gallery-item.large {
-    grid-column: span 1;
-    grid-row: span 1;
+  .marquee-item {
+    width: 280px;
+    height: 200px;
   }
 }
 </style>
